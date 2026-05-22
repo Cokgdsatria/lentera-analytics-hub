@@ -90,16 +90,19 @@ def normalize_text_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     # Pemrosesan tingkat lanjut menggunakan spaCy batch processing (nlp.pipe)
     processed_narratives = []
     
+    # Mengonversi Pandas Series menjadi Python List murni agar spaCy memprosesnya lebih aman
+    texts_to_process = cleaned_texts.astype(str).tolist()
+
     # nlp.pipe memproses teks dalam potongan-potongan (batch) sehingga alokasi memori sangat efisien
-    for doc in nlp.pipe(cleaned_texts, batch_size=1000):
+    for doc in nlp.pipe(texts_to_process, batch_size=1000):
         # Menyaring token yang bukan stopwords dan mengubahnya menjadi lemma (kata dasar)
-       tokens = [
+        tokens = [
             token.lemma_ for token in doc 
             if not token.is_stop                 # Filter Stopwords umum
             and token.text.strip() != ""         # Filter token kosong
             and len(token.text) > 1              # Filter noise karakter tunggal (seperti 'u', 's', 'c')
         ]
-    processed_narratives.append(" ".join(tokens))
+        processed_narratives.append(" ".join(tokens))
         
     # Menyimpan hasil akhir ke dalam kerangka data
     df_clean['Cleaned_Narrative'] = processed_narratives
