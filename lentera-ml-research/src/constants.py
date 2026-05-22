@@ -1,0 +1,133 @@
+# src/constants.py
+
+HIGH_ISSUES = [
+   "Fraud or scam",
+    "False statements or representation",
+    "Threatened to contact someone or share information improperly",
+    "Took or threatened to take negative or legal action",
+    "Improper use of your report",
+    "Unauthorized transactions or other transaction problem",
+    "Unauthorized withdrawals or charges",
+    "Credit monitoring or identity theft protection services",
+    "Problem with fraud alerts or security freezes",
+    "Received a loan you didn't apply for",
+    "Lost or stolen money order",
+    "Repossession",
+    "Vehicle was repossessed or sold the vehicle",
+    "Vehicle was damaged or destroyed the vehicle"
+]
+
+HIGH_KEYWORDS = [
+    'stolen', 'harassing', 'illegal', 'threatened', 'victim of identity theft', 
+    'scam', 'fraud', 'unauthorized', 'legal action', 'police report',
+    'hacked',            
+    'breach',            
+    'forged',            
+    'impersonating',     
+    'fake account',      
+    'stole',            
+    'extortion',         
+    'attorney',          
+    'lawsuit',           
+    'sue',               
+    'abusive',           
+    'harassment'         
+]
+
+MEDIUM_ISSUES = [
+    "Attempts to collect debt not owed",
+    "Incorrect information on your report",
+    "Problem with a purchase shown on your statement",
+    "Fees or interest",
+    "Charged fees or interest you didn't expect",
+    "Unexpected or other fees",
+    "Charged upfront or unexpected fees",
+    "Unexpected fees",
+    "Wrong amount charged or received",
+    "Money was taken from your bank account on the wrong day or for the wrong amount",
+    "Problem with a lender or other company charging your account",
+    "Struggling to pay your loan",
+    "Struggling to pay mortgage",
+    "Struggling to repay your loan",
+    "Struggling to pay your bill",
+    "Problem when making payments",
+    "Trouble during payment process",
+    "Loan payment wasn't credited to your account",
+    "Issues with repayment",
+    "Problem caused by your funds being low",
+    "Money was not available when promised",
+    "Was approved for a loan, but didn't receive the money",
+    "Problems receiving the advance",
+    "Problem with a company's investigation into an existing problem",
+    "Problem with a purchase or transfer",
+    "Didn't provide services promised",
+    "Problem with overdraft",
+    "Problem with cash advance",
+    "Can't stop withdrawals from your bank account",
+    "Can't contact lender or servicer",
+    "Unable to get your credit report or credit score",
+    "Incorrect exchange rate"
+]
+
+MEDIUM_KEYWORDS = [
+    'incorrect', 'error', 'dispute', 'charged', 'wrong amount', 'late fee', 
+    'inaccurate', 'validation', 'verification', 'investigation', 'discrepancy', 'charge',
+    'overcharged',          
+    'double charged',       
+    'refund',               
+    'penalty',              
+    'missing payment',      
+    'misapplied',           
+    'credit score dropped', 
+    'balance error',        
+    'never received',       
+    'refused to correct',   
+    'unresolved',           
+    'adjustment'            
+]
+
+LOW_ISSUES = [
+    "Written notification about debt",
+    "Managing the loan or lease",
+    "Getting a loan or lease",
+    "Getting the loan",
+    "Getting a loan",
+    "Closing an account",
+    "Closing your account",
+    "Opening an account",
+    "Managing an account",
+    "Getting a credit card",
+    "Getting a line of credit",
+    "Applying for a mortgage or refinancing an existing mortgage",
+    "Closing on a mortgage",
+    "Managing, opening, or closing your mobile wallet account",
+    "Problem getting a card or closing an account",
+    "Trouble using the card",
+    "Trouble using your card",
+    "Trouble accessing funds in your mobile or digital wallet",
+    "Other transaction problem",
+    "Other features, terms, or problems",
+    "Other service problem",
+    "Problem with customer service",
+    "Problem adding money",
+    "Dealing with your lender or servicer",
+    "Electronic communications",
+    "Communication tactics",
+    "Confusing or missing disclosures",
+    "Advertising and marketing, including promotional offers",
+    "Confusing or misleading advertising or marketing",
+    "Advertising",
+    "Problem with additional add-on products or services",
+    "Problem with the payoff process at the end of the loan",
+    "Problems at the end of the loan or lease",
+    "Issue with income share agreement",
+    "Issue where my lender is my school",
+    "Overdraft, savings, or rewards features",
+    "Credit limit changed"
+]
+
+WORDS_TO_KEEP = {
+    'not', 'no', 'nor', 'dont', 'didnt', 'doesnt', 'isnt', 
+    'arent', 'wasnt', 'werent', 'havent', 'hasnt', 
+    'cannot', 'cant', 'couldnt', 'wouldnt', 'shouldnt'
+}
