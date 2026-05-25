@@ -34,6 +34,7 @@ HIGH_KEYWORDS = [
     'harassment'         
 ]
 
+
 MEDIUM_ISSUES = [
     "Attempts to collect debt not owed",
     "Incorrect information on your report",
@@ -70,20 +71,18 @@ MEDIUM_ISSUES = [
 ]
 
 MEDIUM_KEYWORDS = [
-    'incorrect', 'error', 'dispute', 'charged', 'wrong amount', 'late fee', 
-    'inaccurate', 'validation', 'verification', 'investigation', 'discrepancy', 'charge',
+    'wrong amount', 
+    'late fee', 
+    'discrepancy',
     'overcharged',          
     'double charged',       
     'refund',               
-    'penalty',              
     'missing payment',      
-    'misapplied',           
     'credit score dropped', 
     'balance error',        
     'never received',       
     'refused to correct',   
-    'unresolved',           
-    'adjustment'            
+    'unresolved'           
 ]
 
 LOW_ISSUES = [
