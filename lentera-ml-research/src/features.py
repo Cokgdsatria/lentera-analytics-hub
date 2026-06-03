@@ -31,9 +31,9 @@ def split_data(df: pd.DataFrame, text_col: str, target_col: str, random_state=42
 
 def extract_tfidf(train_texts, val_texts, test_texts, max_features=5000):
     """
-    Ekstraksi tokenisasi menggunakan TF-IDF.
+    Ekstraksi tokenisasi menggunakan TF-IDF (Mendukung Unigram + Bigram).
     """
-    vectorizer = TfidfVectorizer(max_features=max_features, stop_words='english')
+    vectorizer = TfidfVectorizer(max_features=max_features, stop_words='english', ngram_range=(1,3))
     
     X_train = vectorizer.fit_transform(train_texts)
     X_val = vectorizer.transform(val_texts)
