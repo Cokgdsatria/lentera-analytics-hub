@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ComplaintPage from './pages/ComplaintPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import AdminComplaintsPage from './pages/AdminComplaintsPage';
 
 function App() {
   return (
@@ -21,9 +22,16 @@ function App() {
         {/* Rute Admin (Dilindungi dengan ProtectedRoute & Menggunakan AdminLayout) */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AdminLayout />}>
+            {/* 1. Halaman utama Dashboard Overview */}
             <Route path="/admin/dashboard" element={<DashboardPage />} />
-            <Route path="/admin/complaints" element={<div className="p-10 text-2xl font-semibold text-slate-800">Semua Pengaduan</div>} />
+
+            {/* 2. Halaman daftar semua pengaduan (Sudah diperbaiki ke komponen asli) */}
+            <Route path="/admin/complaints" element={<AdminComplaintsPage />} />
+
+            {/* 3. Halaman Analisis Pengaduan (Nanti di Tahap berikutnya) */}
             <Route path="/admin/analytics" element={<div className="p-10 text-2xl font-semibold text-slate-800">Analisis Pengaduan</div>} />
+
+            {/* 4. Halaman Pengaturan Sistem */}
             <Route path="/admin/settings" element={<div className="p-10 text-2xl font-semibold text-slate-800">Pengaturan Sistem</div>} />
           </Route>
         </Route>
