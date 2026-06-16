@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { authApi } from '../../../services/api';
 
 export const useAuth = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -8,27 +9,22 @@ export const useAuth = () => {
         setIsLoading(true);
         setError(null);
 
-        // Simulasi delay jaringan (API Call)
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                // Kredensial *dummy* untuk keperluan testing
-                if (email === 'admin@resolv.com' && password === 'admin123') {
-                    // Simulasi menyimpan token ke localStorage
-                    localStorage.setItem('adminToken', 'mock-jwt-token-123');
-                    setIsLoading(false);
-                    resolve({ success: true });
-                } else {
-                    setIsLoading(false);
-                    setError('Email atau password yang Anda masukkan salah.');
-                    resolve({ success: false });
-                }
-            }, 1000);
-        });
+        try {
+            const response = await authApi.login(email, password);
+            localStorage.setItem('adminToken', response.access_token);
+            localStorage.setItem('adminEmail', response.admin.email);
+            return { success: true };
+        } catch (err) {
+            setError(err.message || 'Email atau password yang Anda masukkan salah.');
+            return { success: false };
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    // Fungsi untuk logout nanti
     const logout = () => {
         localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminEmail');
     };
 
     return { login, logout, isLoading, error };

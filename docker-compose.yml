@@ -1,0 +1,34 @@
+services:
+  backend:
+    build:
+      context: ./lentera-backend
+    image: lentera-backend:local
+    container_name: lentera-backend
+    environment:
+      LENTERA_DATABASE_URL: sqlite:////app/data/lentera.db
+      LENTERA_UPLOAD_DIR: /app/data/evidence
+      LENTERA_CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+      LENTERA_JWT_SECRET_KEY: dev-docker-secret-change-before-deploy
+      LENTERA_ADMIN_EMAIL: admin@resolv.com
+      LENTERA_ADMIN_PASSWORD: admin123
+    ports:
+      - "8000:8000"
+    volumes:
+      - lentera_backend_data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./lentera-frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8000/api/v1
+    image: lentera-frontend:local
+    container_name: lentera-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  lentera_backend_data:

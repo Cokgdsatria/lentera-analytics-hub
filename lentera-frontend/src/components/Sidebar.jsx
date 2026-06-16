@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -6,6 +5,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminEmail');
         navigate('/login');
     };
 

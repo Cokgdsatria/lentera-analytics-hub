@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useSubmitComplaint } from '../hooks/useSubmitComplaint';
 
 export default function ComplaintForm({ onSubmitSuccess }) {
     const [isAnonymous, setIsAnonymous] = useState(false);
@@ -11,6 +12,7 @@ export default function ComplaintForm({ onSubmitSuccess }) {
     const [selectedFile, setSelectedFile] = useState(null);
     const [isDragOver, setIsDragOver] = useState(false);
     const [errors, setErrors] = useState({});
+    const { submitComplaint, isSubmitting, error: submitError } = useSubmitComplaint();
 
     const fileInputRef = useRef(null);
     const maxCharLimit = 1000;
@@ -82,10 +84,27 @@ export default function ComplaintForm({ onSubmitSuccess }) {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (validateForm()) {
-            onSubmitSuccess(); // Panggil fungsi dari parent komponen
+            const formData = new FormData();
+            formData.append('is_anonymous', String(isAnonymous));
+            formData.append('first_name', firstName);
+            formData.append('last_name', lastName);
+            formData.append('email', email);
+            formData.append('company_name', companyName);
+            formData.append('category', category);
+            formData.append('description', description);
+            if (selectedFile) {
+                formData.append('evidence', selectedFile);
+            }
+
+            try {
+                const complaint = await submitComplaint(formData);
+                onSubmitSuccess(complaint);
+            } catch {
+                // The hook owns the visible error state.
+            }
         }
     };
 
@@ -303,6 +322,12 @@ export default function ComplaintForm({ onSubmitSuccess }) {
 
                 <hr className="border-slate-100" />
 
+                {submitError && (
+                    <div className="p-3 rounded-md border border-red-200 bg-red-50 text-xs text-red-600 font-medium">
+                        {submitError}
+                    </div>
+                )}
+
                 {/* D. Form Actions */}
                 <div className="flex justify-end items-center gap-3 pt-2">
                     <button
@@ -314,9 +339,10 @@ export default function ComplaintForm({ onSubmitSuccess }) {
                     </button>
                     <button
                         type="submit"
-                        className="px-5 py-2.5 text-xs md:text-sm font-semibold bg-[#0052cc] hover:bg-[#004bb3] text-white rounded-md transition-all shadow-xs flex items-center gap-1.5 cursor-pointer hover:shadow-sm"
+                        disabled={isSubmitting}
+                        className="px-5 py-2.5 text-xs md:text-sm font-semibold bg-[#0052cc] hover:bg-[#004bb3] text-white rounded-md transition-all shadow-xs flex items-center gap-1.5 cursor-pointer hover:shadow-sm disabled:bg-blue-300 disabled:cursor-not-allowed"
                     >
-                        Submit Complaint <span>➤</span>
+                        {isSubmitting ? 'Submitting...' : 'Submit Complaint'} <span>➤</span>
                     </button>
                 </div>
             </form>

@@ -6,6 +6,8 @@ import ComplaintPage from './pages/ComplaintPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminComplaintsPage from './pages/AdminComplaintsPage';
+import ComplaintDetailPage from './pages/ComplaintDetailPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 function App() {
   return (
@@ -27,9 +29,10 @@ function App() {
 
             {/* 2. Halaman daftar semua pengaduan (Sudah diperbaiki ke komponen asli) */}
             <Route path="/admin/complaints" element={<AdminComplaintsPage />} />
+            <Route path="/admin/complaints/:id" element={<ComplaintDetailPage />} />
 
-            {/* 3. Halaman Analisis Pengaduan (Nanti di Tahap berikutnya) */}
-            <Route path="/admin/analytics" element={<div className="p-10 text-2xl font-semibold text-slate-800">Analisis Pengaduan</div>} />
+            {/* 3. Halaman Analisis Pengaduan */}
+            <Route path="/admin/analytics" element={<AnalyticsPage />} />
 
             {/* 4. Halaman Pengaturan Sistem */}
             <Route path="/admin/settings" element={<div className="p-10 text-2xl font-semibold text-slate-800">Pengaturan Sistem</div>} />

@@ -3,15 +3,16 @@ import ComplaintForm from '../features/complaints/components/ComplaintForm';
 import ComplaintSuccess from '../features/complaints/components/ComplaintSuccess';
 
 export default function ComplaintPage() {
-    // State ini dipindah ke tingkat halaman (page level)
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [submittedComplaint, setSubmittedComplaint] = useState(null);
 
-    // Jika sudah disubmit, tampilkan pesan sukses
     if (isSubmitted) {
-        return <ComplaintSuccess onReset={() => setIsSubmitted(false)} />;
+        return <ComplaintSuccess complaint={submittedComplaint} onReset={() => {
+            setSubmittedComplaint(null);
+            setIsSubmitted(false);
+        }} />;
     }
 
-    // Jika belum disubmit, tampilkan form
     return (
         <div className="max-w-3xl mx-auto">
             {/* Header Halaman */}
@@ -23,7 +24,10 @@ export default function ComplaintPage() {
             </div>
 
             {/* Render Komponen Form */}
-            <ComplaintForm onSubmitSuccess={() => setIsSubmitted(true)} />
+            <ComplaintForm onSubmitSuccess={(complaint) => {
+                setSubmittedComplaint(complaint);
+                setIsSubmitted(true);
+            }} />
 
             {/* Footer Encryption Notice */}
             <div className="text-center mt-6 text-[11px] md:text-xs text-slate-500 flex items-center justify-center gap-1.5 leading-none">

@@ -1,16 +1,7 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { complaintApi } from '../../../services/api';
 
-// Data Dummy
-const INITIAL_COMPLAINTS = [
-    { id: 'CMP-9918', date: 'Oct 24, 2026', customer: 'Aris Setiawan',  email: 'aris.setiawan@email.com',  category: 'Billing Dispute',    urgency: 'High',   status: 'Pending'     },
-    { id: 'CMP-9917', date: 'Oct 24, 2026', customer: 'Rina Amanda',    email: 'rina.m@email.com',          category: 'System Latency',     urgency: 'Medium', status: 'In Progress' },
-    { id: 'CMP-9916', date: 'Oct 23, 2026', customer: 'Budi Cahyono',   email: 'budi.cahyo@email.com',      category: 'Account Access',     urgency: 'Low',    status: 'Resolved'    },
-    { id: 'CMP-9915', date: 'Oct 22, 2026', customer: 'Siti Aminah',    email: 'siti.aminah@email.com',     category: 'Failed Transaction', urgency: 'High',   status: 'In Progress' },
-    { id: 'CMP-9914', date: 'Oct 21, 2026', customer: 'Dedi Kurniawan', email: 'dedi.k@email.com',          category: 'Customer Service',   urgency: 'Low',    status: 'Resolved'    },
-];
-
-// Avatar color palette based on first character
 const AVATAR_COLORS = [
     'bg-blue-100 text-blue-600',
     'bg-violet-100 text-violet-600',
@@ -19,14 +10,27 @@ const AVATAR_COLORS = [
     'bg-emerald-100 text-emerald-600',
     'bg-cyan-100 text-cyan-600',
 ];
+const ITEMS_PER_PAGE = 10;
 
 function getAvatarColor(name) {
-    const code = name.charCodeAt(0);
+    const safeName = name || 'Unknown';
+    const code = safeName.charCodeAt(0);
     return AVATAR_COLORS[code % AVATAR_COLORS.length];
 }
 
 function getInitials(name) {
-    return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+    return (name || 'Unknown')
+        .split(' ')
+        .slice(0, 2)
+        .map(n => n[0])
+        .join('')
+        .toUpperCase();
+}
+
+function nextStatus(status) {
+    if (status === 'Pending') return 'In Progress';
+    if (status === 'In Progress') return 'Resolved';
+    return 'Pending';
 }
 
 export default function ComplaintTable() {
@@ -35,24 +39,38 @@ export default function ComplaintTable() {
     const [urgencyFilter, setUrgencyFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+    const [complaints, setComplaints] = useState([]);
+    const [totalItems, setTotalItems] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [refreshKey, setRefreshKey] = useState(0);
 
-    // Filter Logic — fixed .includes() (not .include())
-    const filteredComplaints = INITIAL_COMPLAINTS.filter((item) => {
-        const q = search.toLowerCase();
-        const matchesSearch =
-            item.customer.toLowerCase().includes(q) ||
-            item.id.toLowerCase().includes(q) ||
-            item.category.toLowerCase().includes(q);
-        const matchesUrgency = urgencyFilter === 'All' || item.urgency === urgencyFilter;
-        const matchesStatus  = statusFilter  === 'All' || item.status  === statusFilter;
-        return matchesSearch && matchesUrgency && matchesStatus;
-    });
+    const fetchComplaints = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await complaintApi.list({
+                search,
+                urgency: urgencyFilter,
+                status: statusFilter,
+                skip: (currentPage - 1) * ITEMS_PER_PAGE,
+                limit: ITEMS_PER_PAGE,
+            });
+            setComplaints(response.items);
+            setTotalItems(response.total);
+        } catch (err) {
+            setError(err.message || 'Failed to load complaints.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [currentPage, search, statusFilter, urgencyFilter]);
 
-    const totalPages = Math.max(1, Math.ceil(filteredComplaints.length / itemsPerPage));
-    const paginated = filteredComplaints.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    useEffect(() => {
+        fetchComplaints();
+    }, [fetchComplaints, refreshKey]);
 
-    // Badge helpers
+    const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+
     const urgencyBadge = (urgency) => {
         switch (urgency) {
             case 'High':   return 'bg-red-50 text-red-600 border border-red-100';
@@ -89,13 +107,18 @@ export default function ComplaintTable() {
         }
     };
 
+    const handleAdvanceStatus = async (item) => {
+        try {
+            await complaintApi.update(item.id, { status: nextStatus(item.status) });
+            setRefreshKey(key => key + 1);
+        } catch (err) {
+            setError(err.message || 'Failed to update complaint.');
+        }
+    };
+
     return (
         <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-
-            {/* Filter & Search Bar */}
             <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-
-                {/* Search Input */}
                 <div className="relative flex-1 sm:max-w-sm">
                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -111,7 +134,6 @@ export default function ComplaintTable() {
                     />
                 </div>
 
-                {/* Dropdown Filters */}
                 <div className="flex items-center gap-2 flex-wrap">
                     <select
                         value={urgencyFilter}
@@ -137,7 +159,12 @@ export default function ComplaintTable() {
                 </div>
             </div>
 
-            {/* Table */}
+            {error && (
+                <div className="px-5 py-3 bg-red-50 border-b border-red-100 text-xs font-semibold text-red-600">
+                    {error}
+                </div>
+            )}
+
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[680px]">
                     <thead>
@@ -152,20 +179,21 @@ export default function ComplaintTable() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50 text-xs">
-                        {paginated.length > 0 ? (
-                            paginated.map((item) => (
+                        {isLoading ? (
+                            <tr>
+                                <td colSpan="7" className="py-14 text-center text-slate-400 font-semibold">
+                                    Loading complaints...
+                                </td>
+                            </tr>
+                        ) : complaints.length > 0 ? (
+                            complaints.map((item) => (
                                 <tr key={item.id} className="hover:bg-slate-50/60 transition-colors group">
-                                    {/* ID */}
                                     <td className="py-3.5 px-5">
                                         <span className="font-bold text-blue-600 font-mono text-[11px] tracking-wide">
                                             {item.id}
                                         </span>
                                     </td>
-
-                                    {/* Date */}
                                     <td className="py-3.5 px-5 text-slate-400 font-medium text-[11px]">{item.date}</td>
-
-                                    {/* Customer with Avatar */}
                                     <td className="py-3.5 px-5">
                                         <div className="flex items-center gap-2.5">
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${getAvatarColor(item.customer)}`}>
@@ -177,30 +205,21 @@ export default function ComplaintTable() {
                                             </div>
                                         </div>
                                     </td>
-
-                                    {/* Category */}
                                     <td className="py-3.5 px-5 text-slate-600 font-semibold text-[11px]">{item.category}</td>
-
-                                    {/* Urgency Badge */}
                                     <td className="py-3.5 px-5">
                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${urgencyBadge(item.urgency)}`}>
                                             <span className={`w-1.5 h-1.5 rounded-full ${urgencyDot(item.urgency)}`}></span>
                                             {item.urgency}
                                         </span>
                                     </td>
-
-                                    {/* Status Badge */}
                                     <td className="py-3.5 px-5">
                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${statusBadge(item.status)}`}>
                                             <span className={`w-1.5 h-1.5 rounded-full ${statusDot(item.status)}`}></span>
                                             {item.status}
                                         </span>
                                     </td>
-
-                                    {/* Actions */}
                                     <td className="py-3.5 px-5">
                                         <div className="flex items-center justify-center gap-1.5">
-                                            {/* View Detail */}
                                             <button
                                                 onClick={() => navigate(`/admin/complaints/${item.id}`)}
                                                 title="View Detail"
@@ -211,9 +230,9 @@ export default function ComplaintTable() {
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                 </svg>
                                             </button>
-                                            {/* Edit */}
                                             <button
-                                                title="Edit"
+                                                onClick={() => handleAdvanceStatus(item)}
+                                                title="Advance Status"
                                                 className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-all cursor-pointer"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -240,10 +259,9 @@ export default function ComplaintTable() {
                 </table>
             </div>
 
-            {/* Pagination Footer */}
             <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <p className="text-[11px] text-slate-400 font-medium">
-                    Showing <span className="font-bold text-slate-600">{paginated.length}</span> of <span className="font-bold text-slate-600">{filteredComplaints.length}</span> complaints
+                    Showing <span className="font-bold text-slate-600">{complaints.length}</span> of <span className="font-bold text-slate-600">{totalItems}</span> complaints
                 </p>
                 <div className="flex items-center gap-1">
                     <button

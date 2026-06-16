@@ -1,4 +1,4 @@
-export default function ComplaintSuccess({ onReset }) {
+export default function ComplaintSuccess({ complaint, onReset }) {
     return (
         <div className="max-w-xl mx-auto bg-white rounded-xl shadow-xs border border-slate-200 p-8 text-center mt-10">
             <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -8,7 +8,7 @@ export default function ComplaintSuccess({ onReset }) {
             </div>
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Complaint Submitted Successfully</h2>
             <p className="text-slate-500 text-sm mb-6">
-                Thank you for sharing your concerns. Your reference number is <span className="font-semibold text-slate-700">#LC-{Math.floor(100000 + Math.random() * 900000)}</span>.
+                Thank you for sharing your concerns. Your reference number is <span className="font-semibold text-slate-700">{complaint?.public_id || 'Processing'}</span>.
                 We will review it promptly.
             </p>
             <button
