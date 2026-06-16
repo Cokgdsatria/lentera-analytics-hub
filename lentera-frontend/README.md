@@ -1,71 +1,102 @@
-# React + Vite
+# Lentera Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend Lentera Analytics Hub dibangun dengan React, Vite, React Router, Tailwind CSS, dan Recharts. Aplikasi ini menyediakan form pengaduan publik, login admin, dashboard monitoring, analytics, tabel pengaduan, dan halaman detail pengaduan.
 
-Currently, two official plugins are available:
+## Prasyarat
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js 24 atau versi LTS modern yang kompatibel
+- npm
+- Backend Lentera berjalan dan dapat diakses
 
-## React Compiler
+## Konfigurasi Environment
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Salin template environment:
 
-## Expanding the ESLint configuration
+```bash
+cp .env.example .env
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Isi URL backend:
 
+```env
+VITE_API_BASE_URL=http://localhost:8000/api/v1
+```
 
-lentera-frontend/
-├── public/
-└── src/
-    ├── assets/             # Gambar statis, logo Lentera, favicon
-    ├── components/         # Global Shared Components (Reusable UI)
-    │   ├── ui/             # Komponen kecil/atomik (Button, Input, Badge, Card)
-    │   ├── Navbar.jsx      # Navbar atas dengan ikon profil login admin
-    │   ├── Sidebar.jsx     # Sidebar khusus untuk Dashboard Admin
-    │   └── ProtectedRoute.jsx # Guard untuk membatasi akses halaman admin
-    │
-    ├── context/            # Global State Management
-    │   └── AuthContext.jsx # Menyimpan status login admin & token JWT
-    │
-    ├── features/           # Modularisasi berdasarkan Fitur Utama (Sangat disarankan)
-    │   ├── complaints/     # Fitur Pengaduan Publik (Photo 3, 4, 5)
-    │   │   ├── components/ 
-    │   │   │   ├── ComplaintForm.jsx    # Form input keluhan nasabah
-    │   │   │   └── ComplaintSuccess.jsx # Modal/Notifikasi setelah berhasil submit
-    │   │   ├── hooks/
-    │   │   │   └── useSubmitComplaint.js # Logika integrasi API ke backend keluhan
-    │   │   └── services/
-    │   │       └── complaintApi.js
-    │   │
-    │   ├── auth/           # Fitur Autentikasi Admin (Photo 6)
-    │   │   ├── components/
-    │   │   │   └── LoginForm.jsx
-    │   │   └── hooks/
-    │   │       └── useAuth.js
-    │   │
-    │   ├── analytics/      # Fitur Dashboard Utama Admin (Photo 7 & 8)
-    │   │   ├── components/
-    │   │   │   ├── MetricsCard.jsx      # Ringkasan total keluhan, high, med, low
-    │   │   │   ├── UrgencyChart.jsx     # Visualisasi grafik/chart analisis urgensi
-    │   │   │   └── ComplaintTable.jsx   # Tabel daftar keluhan masuk
-    │   │   └── hooks/
-    │   │       └── useAnalyticsData.js  # Mengambil data prediksi model dari backend
-    │
-    ├── hooks/              # Global custom hooks (misal: useDebounce, useTheme)
-    ├── layouts/            # Layout Wrapper untuk halaman
-    │   ├── MainLayout.jsx  # Layout publik (Navbar + content pengaduan)
-    │   └── AdminLayout.jsx # Layout admin (Sidebar + Navbar + area dashboard)
-    │
-    ├── pages/              # Pemetaan file berdasarkan Rute URL (Entry Points)
-    │   ├── ComplaintPage.jsx # Halaman Utama Pengaduan Publik (URL: /)
-    │   ├── LoginPage.jsx     # Halaman Login Admin (URL: /login)
-    │   └── DashboardPage.jsx # Halaman Dashboard Analytics Admin (URL: /admin/dashboard)
-    │
-    ├── services/           # Konfigurasi dasar API klien
-    │   └── api.js          # Instance Axios / Fetch wrapper ke backend Lentera
-    │
-    ├── App.jsx             # Pengaturan Routing (React Router)
-    ├── index.css           # File CSS utama (@import "tailwindcss";)
-    └── main.jsx            # Entry point aplikasi dari Vite
+Untuk deploy Vercel, nilai ini harus mengarah ke backend publik:
+
+```env
+VITE_API_BASE_URL=https://URL-BACKEND-RAILWAY/api/v1
+```
+
+## Instalasi Lokal
+
+```bash
+npm install
+npm run dev
+```
+
+Aplikasi lokal berjalan di:
+
+```text
+http://localhost:5173
+```
+
+## Build Production
+
+```bash
+npm run build
+npm run preview
+```
+
+## Docker
+
+Build dan jalankan hanya frontend:
+
+```bash
+docker build \
+  --build-arg VITE_API_BASE_URL=http://localhost:8000/api/v1 \
+  -t lentera-frontend:local .
+
+docker run --rm -p 5173:80 lentera-frontend:local
+```
+
+Untuk menjalankan frontend + backend sekaligus, gunakan `docker compose up --build -d` dari root repo.
+
+## Deploy ke Vercel
+
+Pengaturan project:
+
+```text
+Framework Preset: Vite
+Root Directory: lentera-frontend
+Build Command: npm run build
+Output Directory: dist
+Install Command: npm install
+```
+
+Environment variable di Vercel:
+
+```env
+VITE_API_BASE_URL=https://URL-BACKEND-RAILWAY/api/v1
+```
+
+Setelah deploy, pastikan backend mengizinkan domain Vercel lewat `LENTERA_CORS_ORIGINS`.
+
+## Endpoint Backend yang Dipakai
+
+Frontend memakai endpoint berikut:
+
+```text
+POST  /api/v1/auth/login
+POST  /api/v1/complaints
+GET   /api/v1/complaints
+GET   /api/v1/complaints/{id}
+PATCH /api/v1/complaints/{id}
+GET   /api/v1/complaints/export.csv
+GET   /api/v1/analytics/summary
+POST  /api/v1/inference/predict
+```
+
+## Catatan Repo Publik
+
+Jangan commit file `.env`, `node_modules`, atau `dist`. Gunakan `.env.example` sebagai dokumentasi konfigurasi.
