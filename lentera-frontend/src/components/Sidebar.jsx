@@ -19,9 +19,6 @@ export default function Sidebar({ isOpen, onClose }) {
         { name: 'Analytics', path: '/admin/analytics', icon: (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
         )},
-        { name: 'System Settings', path: '/admin/settings', icon: (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-        )}
     ];
 
     const sidebarContent = (
@@ -29,11 +26,8 @@ export default function Sidebar({ isOpen, onClose }) {
             {/* Logo Area */}
             <div className="p-5 flex items-center justify-between border-b border-slate-100">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-[#0052cc] rounded-md flex items-center justify-center text-white font-bold text-lg shadow-xs">
-                        R
-                    </div>
                     <div>
-                        <h1 className="text-base font-extrabold text-[#0c4a6e] leading-tight">Resolv</h1>
+                        <h1 className="text-base font-extrabold bg-gradient-to-r from-[#6b0f1a] via-[#9f1239] to-[#7f1d1d] text-transparent bg-clip-text leading-tight">Lentera</h1>
                         <p className="text-[10px] text-slate-400 font-medium tracking-wide">Management Suite</p>
                     </div>
                 </div>
@@ -84,10 +78,6 @@ export default function Sidebar({ isOpen, onClose }) {
 
             {/* Bottom Links */}
             <div className="p-4 border-t border-slate-100 space-y-1">
-                <a href="#" className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-lg transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    Help Center
-                </a>
                 <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
