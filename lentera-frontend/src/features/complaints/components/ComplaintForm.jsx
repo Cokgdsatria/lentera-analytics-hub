@@ -1,6 +1,92 @@
 import { useState, useRef } from 'react';
 import { useSubmitComplaint } from '../hooks/useSubmitComplaint';
 
+const CATEGORY_OPTIONS = [
+    'Fraud or scam',
+    'False statements or representation',
+    'Threatened to contact someone or share information improperly',
+    'Took or threatened to take negative or legal action',
+    'Improper use of your report',
+    'Unauthorized transactions or other transaction problem',
+    'Unauthorized withdrawals or charges',
+    'Credit monitoring or identity theft protection services',
+    'Problem with fraud alerts or security freezes',
+    "Received a loan you didn't apply for",
+    'Lost or stolen money order',
+    'Repossession',
+    'Vehicle was repossessed or sold the vehicle',
+    'Vehicle was damaged or destroyed the vehicle',
+    'Attempts to collect debt not owed',
+    'Incorrect information on your report',
+    'Problem with a purchase shown on your statement',
+    'Fees or interest',
+    "Charged fees or interest you didn't expect",
+    'Unexpected or other fees',
+    'Charged upfront or unexpected fees',
+    'Unexpected fees',
+    'Wrong amount charged or received',
+    'Money was taken from your bank account on the wrong day or for the wrong amount',
+    "Problem with a lender or other company charging your account",
+    'Struggling to pay your loan',
+    'Struggling to pay mortgage',
+    'Struggling to repay your loan',
+    'Struggling to pay your bill',
+    'Problem when making payments',
+    'Trouble during payment process',
+    "Loan payment wasn't credited to your account",
+    'Issues with repayment',
+    'Problem caused by your funds being low',
+    'Money was not available when promised',
+    "Was approved for a loan, but didn't receive the money",
+    'Problems receiving the advance',
+    "Problem with a company's investigation into an existing problem",
+    'Problem with a purchase or transfer',
+    "Didn't provide services promised",
+    'Problem with overdraft',
+    'Problem with cash advance',
+    "Can't stop withdrawals from your bank account",
+    "Can't contact lender or servicer",
+    'Unable to get your credit report or credit score',
+    'Incorrect exchange rate',
+    'Written notification about debt',
+    'Managing the loan or lease',
+    'Getting a loan or lease',
+    'Getting the loan',
+    'Getting a loan',
+    'Closing an account',
+    'Closing your account',
+    'Opening an account',
+    'Managing an account',
+    'Getting a credit card',
+    'Getting a line of credit',
+    'Applying for a mortgage or refinancing an existing mortgage',
+    'Closing on a mortgage',
+    'Managing, opening, or closing your mobile wallet account',
+    'Problem getting a card or closing an account',
+    'Trouble using the card',
+    'Trouble using your card',
+    'Trouble accessing funds in your mobile or digital wallet',
+    'Other transaction problem',
+    'Other features, terms, or problems',
+    'Other service problem',
+    'Problem with customer service',
+    'Problem adding money',
+    'Dealing with your lender or servicer',
+    'Electronic communications',
+    'Communication tactics',
+    'Confusing or missing disclosures',
+    'Advertising and marketing, including promotional offers',
+    'Confusing or misleading advertising or marketing',
+    'Advertising',
+    'Problem with additional add-on products or services',
+    'Problem with the payoff process at the end of the loan',
+    'Problems at the end of the loan or lease',
+    'Issue with income share agreement',
+    'Issue where my lender is my school',
+    'Overdraft, savings, or rewards features',
+    'Credit limit changed',
+];
+
 export default function ComplaintForm({ onSubmitSuccess }) {
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [firstName, setFirstName] = useState('');
@@ -214,21 +300,23 @@ export default function ComplaintForm({ onSubmitSuccess }) {
                             Category <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
-                            <select
+                            <input
+                                type="text"
+                                list="categoryOptions"
                                 value={category}
                                 onChange={(e) => {
                                     setCategory(e.target.value);
                                     if (errors.category) setErrors({ ...errors, category: null });
                                 }}
-                                className={`w-full px-3.5 py-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-xs md:text-sm transition-all appearance-none bg-white pr-10 ${errors.category ? 'border-red-400 focus:border-red-500' : 'border-slate-200'}`}
-                            >
-                                <option value="">Select a category...</option>
-                                <option value="Customer Service">Customer Service</option>
-                                <option value="System Glitch">System Glitch</option>
-                                <option value="Infrastructure Issue">Infrastructure Issue</option>
-                                <option value="Security / Privacy">Security / Privacy</option>
-                                <option value="Other">Other</option>
-                            </select>
+                                placeholder="Select or type a category..."
+                                autoComplete="off"
+                                className={`w-full px-3.5 py-2 border rounded-md focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-xs md:text-sm transition-all bg-white pr-10 ${errors.category ? 'border-red-400 focus:border-red-500' : 'border-slate-200'}`}
+                            />
+                            <datalist id="categoryOptions">
+                                {CATEGORY_OPTIONS.map((label, index) => (
+                                    <option key={`${index}-${label}`} value={label} />
+                                ))}
+                            </datalist>
                             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />

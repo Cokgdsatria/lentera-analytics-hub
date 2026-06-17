@@ -29,10 +29,7 @@ export default function AdminLayout() {
 
                     {/* Logo — mobile only (desktop logo is in sidebar) */}
                     <div className="lg:hidden flex items-center gap-2">
-                        <div className="w-7 h-7 bg-[#0052cc] rounded-md flex items-center justify-center text-white font-bold text-sm">
-                            R
-                        </div>
-                        <span className="text-sm font-extrabold text-[#0c4a6e]">Resolv</span>
+                        <span className="text-sm font-extrabold bg-gradient-to-r from-[#6b0f1a] via-[#9f1239] to-[#7f1d1d] text-transparent bg-clip-text">Lentera</span>
                     </div>
 
                     {/* Spacer for desktop (pushes icons to right) */}

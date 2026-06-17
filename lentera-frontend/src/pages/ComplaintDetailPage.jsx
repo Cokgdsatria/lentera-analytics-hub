@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { complaintApi } from '../services/api';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+const API_ORIGIN = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+
 export default function ComplaintDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -11,6 +14,8 @@ export default function ComplaintDetailPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState(null);
+    const [evidenceError, setEvidenceError] = useState(null);
+    const [isOpeningEvidence, setIsOpeningEvidence] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
@@ -56,6 +61,38 @@ export default function ComplaintDetailPage() {
         }
     };
 
+    const handleOpenEvidence = async () => {
+        setEvidenceError(null);
+        if (!complaint?.evidence_filename) return;
+
+        const filename = complaint.evidence_filename;
+        const encoded = encodeURIComponent(filename);
+        const candidates = [
+            `${API_ORIGIN}/storage/evidence/${encoded}`,
+            `${API_ORIGIN}/evidence/${encoded}`,
+            `${API_ORIGIN}/uploads/${encoded}`,
+            `${API_ORIGIN}/${encoded}`,
+        ];
+
+        setIsOpeningEvidence(true);
+        try {
+            for (const url of candidates) {
+                try {
+                    const response = await fetch(url, { method: 'HEAD' });
+                    if (response.ok) {
+                        window.open(url, '_blank', 'noopener,noreferrer');
+                        return;
+                    }
+                } catch {
+                }
+            }
+
+            setEvidenceError('File evidence belum bisa diakses lewat URL (backend belum menyediakan endpoint untuk download/preview evidence).');
+        } finally {
+            setIsOpeningEvidence(false);
+        }
+    };
+
     if (isLoading) {
         return <div className="p-10 text-sm font-semibold text-slate-400">Loading complaint...</div>;
     }
@@ -96,6 +133,12 @@ export default function ComplaintDetailPage() {
                 </div>
             )}
 
+            {evidenceError && (
+                <div className="px-4 py-3 bg-amber-50 border border-amber-100 text-xs font-semibold text-amber-700 rounded-lg">
+                    {evidenceError}
+                </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-5">
                     <div>
@@ -106,7 +149,28 @@ export default function ComplaintDetailPage() {
                         <Info label="Reporter" value={reporter} />
                         <Info label="Email" value={complaint.is_anonymous ? 'Protected' : complaint.email || '-'} />
                         <Info label="Submitted Category" value={complaint.category} />
-                        <Info label="Evidence" value={complaint.evidence_filename || 'No file'} />
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Evidence</p>
+                            {complaint.evidence_filename ? (
+                                <div className="flex items-center gap-2">
+                                    <p className="font-semibold text-slate-700 break-words">{complaint.evidence_filename}</p>
+                                    <button
+                                        type="button"
+                                        onClick={handleOpenEvidence}
+                                        disabled={isOpeningEvidence}
+                                        className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-semibold bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        {isOpeningEvidence ? 'Opening...' : 'View'}
+                                    </button>
+                                </div>
+                            ) : (
+                                <p className="font-semibold text-slate-700 break-words">No file</p>
+                            )}
+                        </div>
                     </div>
                 </div>
 

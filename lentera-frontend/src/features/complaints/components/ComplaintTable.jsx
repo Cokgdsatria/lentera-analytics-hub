@@ -40,6 +40,7 @@ export default function ComplaintTable() {
     const [statusFilter, setStatusFilter] = useState('All');
     const [currentPage, setCurrentPage] = useState(1);
     const [complaints, setComplaints] = useState([]);
+    const [submittedCategoryById, setSubmittedCategoryById] = useState({});
     const [totalItems, setTotalItems] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -68,6 +69,41 @@ export default function ComplaintTable() {
     useEffect(() => {
         fetchComplaints();
     }, [fetchComplaints, refreshKey]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        async function hydrateSubmittedCategories() {
+            const missing = complaints
+                .map((item) => item.id)
+                .filter((id) => id && !submittedCategoryById[id]);
+            if (!missing.length) return;
+
+            try {
+                const results = await Promise.all(
+                    missing.map(async (id) => {
+                        const complaint = await complaintApi.get(id);
+                        return [id, complaint?.category];
+                    }),
+                );
+
+                if (!isMounted) return;
+                setSubmittedCategoryById((prev) => {
+                    const next = { ...prev };
+                    for (const [id, category] of results) {
+                        if (category) next[id] = category;
+                    }
+                    return next;
+                });
+            } catch {
+            }
+        }
+
+        hydrateSubmittedCategories();
+        return () => {
+            isMounted = false;
+        };
+    }, [complaints, submittedCategoryById]);
 
     const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
 
@@ -205,7 +241,11 @@ export default function ComplaintTable() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="py-3.5 px-5 text-slate-600 font-semibold text-[11px]">{item.category}</td>
+                                    <td className="py-3.5 px-5 text-slate-600 font-semibold text-[11px]">
+                                        <span className="block max-w-[220px] truncate" title={submittedCategoryById[item.id] || item.category}>
+                                            {submittedCategoryById[item.id] || item.category}
+                                        </span>
+                                    </td>
                                     <td className="py-3.5 px-5">
                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${urgencyBadge(item.urgency)}`}>
                                             <span className={`w-1.5 h-1.5 rounded-full ${urgencyDot(item.urgency)}`}></span>
@@ -228,15 +268,6 @@ export default function ComplaintTable() {
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                            </button>
-                                            <button
-                                                onClick={() => handleAdvanceStatus(item)}
-                                                title="Advance Status"
-                                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-all cursor-pointer"
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                 </svg>
                                             </button>
                                         </div>
