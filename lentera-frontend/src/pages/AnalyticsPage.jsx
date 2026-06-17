@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { useAnalyticsData } from '../features/analytics/hooks/useAnalyticsData';
-import { complaintApi } from '../services/api';
 
 const DONUT_COLORS = ['#0038A8', '#1D4ED8', '#93C5FD', '#CBD5E1', '#60A5FA', '#2563EB'];
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 
 function formatNumber(value) {
     return Number(value || 0).toLocaleString();
@@ -41,46 +41,97 @@ function urgencyBarColor(value) {
     }
 }
 
+function parseCsvRow(line) {
+    const cells = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let index = 0; index < line.length; index += 1) {
+        const char = line[index];
+        if (char === '"') {
+            const next = line[index + 1];
+            if (inQuotes && next === '"') {
+                current += '"';
+                index += 1;
+            } else {
+                inQuotes = !inQuotes;
+            }
+            continue;
+        }
+
+        if (char === ',' && !inQuotes) {
+            cells.push(current);
+            current = '';
+            continue;
+        }
+
+        current += char;
+    }
+
+    cells.push(current);
+    return cells;
+}
+
 export default function AnalyticsPage() {
     const { data, isLoading, error } = useAnalyticsData();
     const [search, setSearch] = useState('');
     const [topCompanies, setTopCompanies] = useState([]);
     const [isCompanyLoading, setIsCompanyLoading] = useState(true);
     const [companyError, setCompanyError] = useState(null);
+    const [submittedCategoryDistribution, setSubmittedCategoryDistribution] = useState([]);
 
     useEffect(() => {
         let isMounted = true;
 
-        async function loadTopCompanies() {
+        async function loadDerivedFromExport() {
             setIsCompanyLoading(true);
             setCompanyError(null);
             try {
-                const limit = 100;
-                let skip = 0;
-                let total = Infinity;
-                const all = [];
-
-                for (let page = 0; page < 20 && skip < total; page += 1) {
-                    const response = await complaintApi.list({ skip, limit });
-                    total = Number(response?.total || 0);
-                    const items = response?.items || [];
-                    all.push(...items);
-                    skip += limit;
-                    if (!items.length) break;
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch(`${API_BASE_URL}/complaints/export.csv`, {
+                    headers: token ? { Authorization: `Bearer ${token}` } : {},
+                });
+                if (!response.ok) {
+                    throw new Error(response.statusText || 'Gagal memuat export complaints.');
                 }
 
-                const counts = new Map();
-                for (const item of all) {
-                    const name = String(item?.company_name || '').trim() || 'Unknown';
-                    counts.set(name, (counts.get(name) || 0) + 1);
+                const csvText = await response.text();
+                const lines = csvText.split(/\r?\n/).filter((line) => line.trim());
+                if (lines.length < 2) {
+                    if (isMounted) {
+                        setTopCompanies([]);
+                        setSubmittedCategoryDistribution([]);
+                    }
+                    return;
                 }
 
-                const ranked = [...counts.entries()]
+                const headers = parseCsvRow(lines[0]).map((value) => value.trim());
+                const companyCounts = new Map();
+                const categoryCounts = new Map();
+
+                for (const line of lines.slice(1)) {
+                    const values = parseCsvRow(line);
+                    const row = Object.fromEntries(headers.map((key, index) => [key, values[index] ?? '']));
+                    const company = String(row.company_name || '').trim() || 'Unknown';
+                    const submittedCategory = String(row.category || '').trim() || 'Other';
+
+                    companyCounts.set(company, (companyCounts.get(company) || 0) + 1);
+                    categoryCounts.set(submittedCategory, (categoryCounts.get(submittedCategory) || 0) + 1);
+                }
+
+                const rankedCompanies = [...companyCounts.entries()]
                     .map(([name, value]) => ({ name, value }))
                     .sort((a, b) => b.value - a.value)
                     .slice(0, 6);
 
-                if (isMounted) setTopCompanies(ranked);
+                const rankedCategories = [...categoryCounts.entries()]
+                    .map(([name, value]) => ({ name, value }))
+                    .sort((a, b) => b.value - a.value);
+
+                if (isMounted) {
+                    setTopCompanies(rankedCompanies);
+                    setSubmittedCategoryDistribution(rankedCategories);
+                }
             } catch (err) {
                 if (isMounted) setCompanyError(err.message || 'Gagal memuat performa perusahaan.');
             } finally {
@@ -88,11 +139,14 @@ export default function AnalyticsPage() {
             }
         }
 
-        loadTopCompanies();
+        loadDerivedFromExport();
         return () => { isMounted = false; };
     }, []);
 
-    const categoryDistribution = useMemo(() => data?.category_distribution || [], [data]);
+    const categoryDistribution = useMemo(() => {
+        if (submittedCategoryDistribution?.length) return submittedCategoryDistribution;
+        return data?.category_distribution || [];
+    }, [data, submittedCategoryDistribution]);
     const urgencyDistribution = useMemo(() => data?.urgency_distribution || [], [data]);
     const totalCases = useMemo(
         () => categoryDistribution.reduce((sum, item) => sum + (item.value || 0), 0),
