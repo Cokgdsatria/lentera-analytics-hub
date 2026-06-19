@@ -14,4 +14,4 @@ class PredictionResponse(BaseModel):
     provider: str
     version: str
     latency_ms: float
-    reasons: list[str] = []
+    reasons: list[str] = Field(default_factory=list)

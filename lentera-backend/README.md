@@ -30,6 +30,11 @@ LENTERA_ADMIN_EMAIL=admin@resolv.com
 LENTERA_ADMIN_PASSWORD=admin123
 LENTERA_UPLOAD_DIR=./storage/evidence
 LENTERA_SKLEARN_PIPELINE_PATH=
+LENTERA_KERAS_MODEL_PATH=
+LENTERA_KERAS_TOKENIZER_PATH=
+LENTERA_KERAS_LABEL_ENCODER_PATH=
+LENTERA_KERAS_MAX_LEN=200
+LENTERA_KERAS_LABELS=High,Low,Medium
 ```
 
 Use a strong `LENTERA_JWT_SECRET_KEY` and admin password outside local development.
@@ -102,6 +107,11 @@ LENTERA_ADMIN_EMAIL=email-admin
 LENTERA_ADMIN_PASSWORD=password-admin-kuat
 LENTERA_UPLOAD_DIR=/app/storage/evidence
 LENTERA_SKLEARN_PIPELINE_PATH=
+LENTERA_KERAS_MODEL_PATH=
+LENTERA_KERAS_TOKENIZER_PATH=
+LENTERA_KERAS_LABEL_ENCODER_PATH=
+LENTERA_KERAS_MAX_LEN=200
+LENTERA_KERAS_LABELS=High,Low,Medium
 ```
 
 Notes:
@@ -114,8 +124,19 @@ Notes:
 
 The backend exposes a stable inference contract even before the final model artifact exists.
 
+- If `LENTERA_KERAS_MODEL_PATH` and `LENTERA_KERAS_TOKENIZER_PATH` point to valid Keras model and tokenizer artifacts, the backend uses the Keras model for urgency prediction.
 - If `LENTERA_SKLEARN_PIPELINE_PATH` points to a valid joblib pipeline, the backend will try to use it.
 - Otherwise, it uses a deterministic rule-based provider and marks predictions with `provider=rules`.
+
+The Keras provider expects a pickled `tensorflow.keras.preprocessing.text.Tokenizer`.
+Use `LENTERA_KERAS_MAX_LEN=200` for the CNN-BiLSTM run. Set `LENTERA_KERAS_LABEL_ENCODER_PATH` when the pickled label encoder is available; otherwise keep `LENTERA_KERAS_LABELS=High,Low,Medium` as the fallback label order.
+
+The two shared DagsHub runs require a signed-in contributor session to download artifacts. From the local notebook outputs:
+
+- `m_31e7e74c08914ab395e0151b02f14510` is `cnnbilstm_Run`, with test accuracy `0.84` and macro F1 `0.84`.
+- `m_87bf7b979f794148b3cdc5af3b148eb3` appears to be the BiLSTM-FastText run; the completed Phase 1 output shows test accuracy `0.8322` and macro F1 `0.81`, while the Phase 2 final test output is incomplete in the committed notebook.
+
+Use the CNN-BiLSTM run unless the DagsHub metrics for `m_87bf7...` show a better final test macro F1 after login.
 
 Expected production path:
 

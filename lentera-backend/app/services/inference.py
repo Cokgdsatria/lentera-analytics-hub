@@ -4,7 +4,7 @@ import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 
 from app.core.config import get_settings
 
@@ -239,17 +239,129 @@ class SklearnPipelineProvider:
         )
 
 
+class KerasUrgencyProvider:
+    provider = "keras"
+
+    def __init__(
+        self,
+        model_path: Path,
+        tokenizer_path: Path,
+        max_len: int,
+        labels: list[str],
+    ) -> None:
+        import pickle
+
+        import numpy as np
+        from tensorflow.keras.models import load_model
+        from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+        self.model_path = model_path
+        self.tokenizer_path = tokenizer_path
+        self.max_len = max_len
+        self.labels = labels
+        self.np = np
+        self.pad_sequences = pad_sequences
+        self.model = load_model(model_path, compile=False)
+        with tokenizer_path.open("rb") as file:
+            tokenizer_artifact: Any = pickle.load(file)
+        self.tokenizer = self._extract_tokenizer(tokenizer_artifact)
+        self.rule_provider = RuleBasedInferenceProvider()
+        self.version = f"keras:{model_path.name}"
+
+    @staticmethod
+    def _extract_tokenizer(artifact: Any) -> Any:
+        if hasattr(artifact, "texts_to_sequences"):
+            return artifact
+        if isinstance(artifact, dict):
+            for key in ("tokenizer", "text_tokenizer", "keras_tokenizer"):
+                candidate = artifact.get(key)
+                if hasattr(candidate, "texts_to_sequences"):
+                    return candidate
+        raise ValueError("Keras tokenizer artifact must contain a Tokenizer with texts_to_sequences().")
+
+    def predict(self, description: str, category: str | None = None) -> Prediction:
+        started = time.perf_counter()
+        cleaned_text = normalize_keras_text(description)
+        sequences = self.tokenizer.texts_to_sequences([cleaned_text])
+        padded = self.pad_sequences(
+            sequences,
+            maxlen=self.max_len,
+            padding="post",
+            truncating="post",
+        )
+        probabilities = self.model.predict(padded, verbose=0)[0]
+        class_index = int(self.np.argmax(probabilities))
+        fallback = self.rule_provider.predict(description=description, category=category)
+        urgency = self.labels[class_index] if class_index < len(self.labels) else fallback.urgency
+        confidence = float(probabilities[class_index])
+        latency_ms = (time.perf_counter() - started) * 1000
+        return Prediction(
+            urgency=urgency,
+            sentiment=fallback.sentiment,
+            predicted_category=fallback.predicted_category,
+            confidence=round(min(max(confidence, 0.0), 1.0), 2),
+            provider=self.provider,
+            version=self.version,
+            latency_ms=round(latency_ms, 3),
+            reasons=["keras_urgency_model", *fallback.reasons],
+        )
+
+
+def normalize_keras_text(text: str) -> str:
+    cleaned = normalize_text(text)
+    cleaned = re.sub(r"'", "", cleaned)
+    cleaned = re.sub(r"[^a-z\s]", " ", cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    return cleaned.strip()
+
+
 class InferenceService:
     def __init__(self) -> None:
         settings = get_settings()
-        artifact = Path(settings.sklearn_pipeline_path).expanduser() if settings.sklearn_pipeline_path else None
-        if artifact and artifact.exists():
-            self.provider: InferenceProvider = SklearnPipelineProvider(artifact)
+        keras_model = Path(settings.keras_model_path).expanduser() if settings.keras_model_path else None
+        keras_tokenizer = Path(settings.keras_tokenizer_path).expanduser() if settings.keras_tokenizer_path else None
+        keras_label_encoder = (
+            Path(settings.keras_label_encoder_path).expanduser()
+            if settings.keras_label_encoder_path
+            else None
+        )
+        sklearn_artifact = (
+            Path(settings.sklearn_pipeline_path).expanduser()
+            if settings.sklearn_pipeline_path
+            else None
+        )
+        if keras_model and keras_tokenizer and keras_model.exists() and keras_tokenizer.exists():
+            try:
+                self.provider: InferenceProvider = KerasUrgencyProvider(
+                    model_path=keras_model,
+                    tokenizer_path=keras_tokenizer,
+                    max_len=settings.keras_max_len,
+                    labels=self._load_keras_labels(keras_label_encoder, settings.keras_label_list),
+                )
+            except Exception:
+                self.provider = RuleBasedInferenceProvider()
+        elif sklearn_artifact and sklearn_artifact.exists():
+            self.provider = SklearnPipelineProvider(sklearn_artifact)
         else:
             self.provider = RuleBasedInferenceProvider()
 
     def predict(self, description: str, category: str | None = None) -> Prediction:
         return self.provider.predict(description=description, category=category)
+
+    @staticmethod
+    def _load_keras_labels(label_encoder_path: Path | None, default_labels: list[str]) -> list[str]:
+        if label_encoder_path and label_encoder_path.exists():
+            import pickle
+
+            try:
+                with label_encoder_path.open("rb") as file:
+                    label_encoder = pickle.load(file)
+                classes = getattr(label_encoder, "classes_", None)
+                if classes is not None:
+                    return [str(label) for label in classes]
+            except Exception:
+                return default_labels
+        return default_labels
 
 
 _service: InferenceService | None = None

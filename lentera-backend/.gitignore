@@ -6,5 +6,6 @@ __pycache__/
 *.sqlite
 storage/
 /models/
+/model/
 uploads/
 .pytest_cache/

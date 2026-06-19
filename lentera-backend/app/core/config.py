@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     allowed_upload_types: str = "application/pdf,image/png,image/jpeg"
 
     sklearn_pipeline_path: str | None = None
+    keras_model_path: str | None = None
+    keras_tokenizer_path: str | None = None
+    keras_label_encoder_path: str | None = None
+    keras_max_len: int = 200
+    keras_labels: str = "High,Low,Medium"
 
     @property
     def cors_origin_list(self) -> list[str]:
@@ -45,6 +50,10 @@ class Settings(BaseSettings):
     @property
     def upload_dir_path(self) -> Path:
         return Path(self.upload_dir).expanduser().resolve()
+
+    @property
+    def keras_label_list(self) -> list[str]:
+        return [label.strip() for label in self.keras_labels.split(",") if label.strip()]
 
 
 @lru_cache
