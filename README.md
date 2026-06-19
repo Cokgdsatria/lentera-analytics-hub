@@ -1,6 +1,6 @@
 # Modul Prapemrosesan Teks - Proyek Lentera
 
-Dokumentasi ini menjelaskan arsitektur prapemrosesan data (*preprocessing pipeline*) untuk Modul Intelligent Triage pada proyek Lentera. Modul ini dirancang untuk dapat digunakan ulang (*reusable*) dan mendukung eksperimen berbagai arsitektur model (Machine Learning Klasik, LSTM, dan Transformer/BERT).
+Dokumentasi ini menjelaskan arsitektur prapemrosesan data (*preprocessing pipeline*) untuk Modul Intelligent Triage pada proyek Lentera. Modul ini dirancang untuk dapat digunakan ulang (*reusable*) dan mendukung eksperimen berbagai arsitektur model (Machine Learning Klasik, LSTM, GRU, LSTM, dan Bi-LSTM).
 
 ---
 
