@@ -26,7 +26,7 @@ Untuk mengakomodasi karakteristik algoritma pemodelan yang berbeda, fungsi `norm
 
 1.  **`Cleaned_Narrative`**
     * **Karakteristik**: Huruf kecil, tanpa apostrof, tanpa angka, tanpa tanda baca, terlematisasi, dan bebas *stopwords*.
-    * **Peruntukan**: Model **Machine Learning Klasik** (TF-IDF) dan arsitektur sekuensial dasar (**LSTM**).
+    * **Peruntukan**: Model **Machine Learning Klasik** (TF-IDF) dan arsitektur sekuensial (**LSTM, GRU, CNN-BiLSTM**).
 2.  **`Raw_Filtered_Narrative`**
     * **Karakteristik**: Mempertahankan tanda baca, angka, kapitalisasi, dan struktur kalimat utuh. Hanya dibersihkan dari tag privasi `xxxx`.
     * **Peruntukan**: Eksklusif untuk model **Transformer (BERT, RoBERTa)** guna mempertahankan konteks *Self-Attention*.
@@ -35,7 +35,16 @@ Untuk mengakomodasi karakteristik algoritma pemodelan yang berbeda, fungsi `norm
 
 ---
 
-## 3. Panduan Eksekusi dan Kolaborasi di Google Colab
+## 3. Penanganan Data Tidak Seimbang (Imbalanced Data)
+
+Dataset keluhan finansial umumnya sangat tidak seimbang (mayoritas keluhan masuk ke urgensi Low atau Medium). Untuk mencegah bias pada prediksi:
+* Proyek ini menerapkan teknik **Undersampling** terstruktur secara eksklusif (tidak menggunakan *class weighting*).
+* Jumlah data pada kelas mayoritas dipangkas secara acak agar jumlahnya sama persis dengan jumlah sampel pada kelas minoritas.
+* Hal ini menjamin bahwa evaluasi performa seluruh model (Klasik maupun Deep Learning) berjalan valid dan *apple-to-apple*.
+
+---
+
+## 4. Panduan Eksekusi dan Kolaborasi di Google Colab
 
 Karena Google Colab beroperasi pada lingkungan virtual, kita menggunakan integrasi Google Drive. Terdapat dua opsi sinkronisasi folder kerja `lentera-ml-research` untuk tim:
 
@@ -73,7 +82,7 @@ from src.preprocessing import filter_invalid_complaints, apply_urgency_labels, n
 
 ---
 
-## 4. Instalasi Aplikasi Full Stack
+## 5. Instalasi Aplikasi Full Stack
 
 Bagian sebelumnya tetap menjadi dokumentasi modul riset dan prapemrosesan ML. Bagian ini menambahkan panduan menjalankan aplikasi full stack Lentera Analytics Hub yang terdiri dari backend FastAPI, frontend React/Vite, dan modul inference ML.
 
@@ -84,8 +93,8 @@ Bagian sebelumnya tetap menjadi dokumentasi modul riset dan prapemrosesan ML. Ba
 ├── docker-compose.yml
 ├── lentera-backend/
 ├── lentera-frontend/
-├── lentera-ml-research/
-└── tests/
+└── lentera-ml-research/
+    └── tests/
 ```
 
 ### Jalankan dengan Docker
@@ -125,7 +134,7 @@ Folder `tests/` berisi smoke test Python untuk alur utama aplikasi, termasuk aut
 Jalankan setelah backend aktif:
 
 ```bash
-python3 tests/test_all_features.py
+python3 lentera-ml-research/tests/test_all_features.py
 ```
 
 ### Instalasi Frontend Saja
@@ -212,7 +221,7 @@ Untuk deployment ini, file model ikut di-commit agar Docker image Railway dapat 
 
 ```bash
 docker compose up --build -d
-python3 tests/test_all_features.py
+python3 lentera-ml-research/tests/test_all_features.py
 ```
 
 Cek provider model:
