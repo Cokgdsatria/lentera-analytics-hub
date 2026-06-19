@@ -30,6 +30,8 @@ Untuk mengakomodasi karakteristik algoritma pemodelan yang berbeda, fungsi `norm
 2.  **`Raw_Filtered_Narrative`**
     * **Karakteristik**: Mempertahankan tanda baca, angka, kapitalisasi, dan struktur kalimat utuh. Hanya dibersihkan dari tag privasi `xxxx`.
     * **Peruntukan**: Eksklusif untuk model **Transformer (BERT, RoBERTa)** guna mempertahankan konteks *Self-Attention*.
+    * > [!NOTE]
+      > **Disclaimer:** Fitur ini saat ini belum digunakan secara aktif oleh model yang ada di repositori (Baseline, LSTM, GRU, CNN-BiLSTM semuanya menggunakan `Cleaned_Narrative`). Fitur ini sengaja dibuat dan dipertahankan di dalam *pipeline* sebagai persiapan (*future-proofing*) untuk pengembangan model berbasis Transformer di masa mendatang.
 
 ---
 
