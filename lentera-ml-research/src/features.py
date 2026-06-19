@@ -6,10 +6,6 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 def split_data(df: pd.DataFrame, text_col: str, target_col: str, random_state=42):
-    """
-    Membagi dataset secara stratified dengan rasio Train (70%), Validation (15%), dan Test (15%).
-    """
-    # Memisahkan Test set sebesar 15% dari total data
     df_train_val, df_test = train_test_split(
         df, 
         test_size=0.15, 
@@ -17,7 +13,6 @@ def split_data(df: pd.DataFrame, text_col: str, target_col: str, random_state=42
         stratify=df[target_col]
     )
     
-    # Memisahkan Validation set (15% dari total) dari gabungan Train-Val (85% dari total)
     val_relative_size = 0.15 / 0.85
     df_train, df_val = train_test_split(
         df_train_val, 
@@ -30,9 +25,6 @@ def split_data(df: pd.DataFrame, text_col: str, target_col: str, random_state=42
     return df_train, df_val, df_test
 
 def extract_tfidf(train_texts, val_texts, test_texts, max_features=5000):
-    """
-    Ekstraksi tokenisasi menggunakan TF-IDF (Mendukung Unigram + Bigram).
-    """
     vectorizer = TfidfVectorizer(max_features=max_features, stop_words='english', ngram_range=(1,3))
     
     X_train = vectorizer.fit_transform(train_texts)
@@ -42,9 +34,6 @@ def extract_tfidf(train_texts, val_texts, test_texts, max_features=5000):
     return X_train, X_val, X_test, vectorizer
 
 def extract_lstm_sequences(train_texts, val_texts, test_texts, max_words=10000, max_len=150):
-    """
-    Ekstraksi tokenisasi berupa indeks integer dan padding untuk model LSTM.
-    """
     tokenizer = Tokenizer(num_words=max_words, oov_token="<OOV>")
     tokenizer.fit_on_texts(train_texts)
     
