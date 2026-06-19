@@ -1,0 +1,42 @@
+name: Deploy Frontend to Vercel
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "lentera-frontend/**"
+      - ".github/workflows/deploy-frontend-vercel.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend-vercel
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy with Vercel CLI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy frontend
+        working-directory: lentera-frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+
+          for secret_name in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+            if [ -z "${!secret_name}" ]; then
+              echo "Missing GitHub secret: ${secret_name}"
+              exit 1
+            fi
+          done
+
+          npx --yes vercel@latest pull --yes --environment=production --token="${VERCEL_TOKEN}"
+          npx --yes vercel@latest build --prod --token="${VERCEL_TOKEN}"
+          npx --yes vercel@latest deploy --prebuilt --prod --token="${VERCEL_TOKEN}"
