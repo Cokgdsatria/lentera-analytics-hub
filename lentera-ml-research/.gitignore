@@ -31,7 +31,7 @@ Thumbs.db
 *.pt
 *.ckpt
 *.h5
-*.pkl
+# *.pkl
 *.joblib
 *.onnx
 *.tflite
