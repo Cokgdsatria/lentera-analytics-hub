@@ -152,6 +152,10 @@ export default function ComplaintTable() {
         }
     };
 
+    const openComplaint = (id) => {
+        navigate(`/admin/complaints/${id}`);
+    };
+
     return (
         <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
             <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
@@ -223,7 +227,20 @@ export default function ComplaintTable() {
                             </tr>
                         ) : complaints.length > 0 ? (
                             complaints.map((item) => (
-                                <tr key={item.id} className="hover:bg-slate-50/60 transition-colors group">
+                                <tr
+                                    key={item.id}
+                                    role="link"
+                                    tabIndex={0}
+                                    aria-label={`Open complaint ${item.id}`}
+                                    onClick={() => openComplaint(item.id)}
+                                    onKeyDown={(event) => {
+                                        if (event.key === 'Enter' || event.key === ' ') {
+                                            event.preventDefault();
+                                            openComplaint(item.id);
+                                        }
+                                    }}
+                                    className="hover:bg-slate-50/60 transition-colors group cursor-pointer focus:outline-none focus:bg-slate-50/80 focus:ring-2 focus:ring-inset focus:ring-blue-500/20"
+                                >
                                     <td className="py-3.5 px-5">
                                         <span className="font-bold text-blue-600 font-mono text-[11px] tracking-wide">
                                             {item.id}
@@ -261,7 +278,10 @@ export default function ComplaintTable() {
                                     <td className="py-3.5 px-5">
                                         <div className="flex items-center justify-center gap-1.5">
                                             <button
-                                                onClick={() => navigate(`/admin/complaints/${item.id}`)}
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    openComplaint(item.id);
+                                                }}
                                                 title="View Detail"
                                                 className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all cursor-pointer"
                                             >
